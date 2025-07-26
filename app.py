@@ -1,102 +1,40 @@
-from ttkbootstrap import (
-    Window, Label, Menubutton, Button, Menu
-)
+from ttkbootstrap import Window, Label, Entry, Frame, Button
+from ttkbootstrap.constants import *
 import requests
-from tkinter import StringVar
-import xml.etree.ElementTree as ET
 
 app = Window(themename="cyborg")
-app.geometry("400x400")
+app.geometry("400x500")
+app.title("Conversor de Moedas")
 
-moedas_disponiveis = {}
-cotacoes_disponiveis = {}
-moeda_selecionada = StringVar()
-resultado_var = StringVar(value="Clique em Converter")
+Label(app, text="Conversor de Reais para Euros", font=("Arial", 14)).pack(pady=10)
 
-def carregar_moedas():
-    """Carrega a lista de moedas disponíveis"""
+input_frame = Frame(app)
+input_frame.pack(pady=10, fill='x', padx=20)
+
+result_frame = Frame(app)
+result_frame.pack(pady=10, fill='x', padx=20)
+
+Label(input_frame, text="Valor R$ ", font=("Arial", 14)).pack(side='left', padx=(0, 10))
+input_entry = Entry(input_frame, font=("Arial", 14))
+input_entry.pack(side='left', expand=True, fill='x')
+
+Label(result_frame, text="Resultado €: ", font=("Arial", 14)).pack(side='left', padx=(0, 10))
+result_label_show = Label(result_frame, font=("Arial", 14))
+result_label_show.pack(side='left', expand=True, fill='x')
+
+def buscar_cotacao():
     try:
-        response = requests.get("https://economia.awesomeapi.com.br/xml/available/uniq")
-        if response.status_code == 200:
-            root = ET.fromstring(response.content)
-            for child in root:
-                moedas_disponiveis[child.tag] = child.text
-            
-        response = requests.get("https://economia.awesomeapi.com.br/xml/available")
-        if response.status_code == 200:
-            root = ET.fromstring(response.content)
-            for child in root:
-                if '-' in child.tag:
-                    cotacoes_disponiveis[child.tag] = child.text
-            
-        menu = Menu(app)
-        
-        moedas_ordenadas = sorted(moedas_disponiveis.items(), key=lambda x: x[0])
-        
-        for codigo, nome in moedas_ordenadas:
-            par = f"{codigo}-BRL"
-            if par in cotacoes_disponiveis:
-                menu.add_radiobutton(
-                    label=f"{codigo} - {nome}",
-                    variable=moeda_selecionada,
-                    value=par,
-                    command=atualizar_moeda_selecionada
-                )
-        
-        moeda_button['menu'] = menu
-        
+        response = requests.get("https://economia.awesomeapi.com.br/json/last/EUR-BRL")
+        data = response.json()
+        cotacao = float(data["EURBRL"]["bid"])
+        replaced_entry = input_entry.get().replace(",",".")
+        valor_reais = float(replaced_entry or 0)
+        valor_euros = valor_reais / cotacao
+        result_label_show.config(text=f"{valor_euros:.2f}")
     except Exception as e:
-        resultado_var.set(f"Erro ao carregar moedas: {str(e)}")
+        result_label_show.config(text="Erro ao obter cotação")
+        print(f"Erro: {e}")
 
-def atualizar_moeda_selecionada():
-    par = moeda_selecionada.get()
-    codigo = par.split('-')[0]
-    if codigo in moedas_disponiveis:
-        moeda_button.config(text=f"{codigo} - {moedas_disponiveis[codigo]}")
-    else:
-        moeda_button.config(text="Selecione uma moeda")
-
-def converter_moeda():
-    par = moeda_selecionada.get()
-    if not par:
-        resultado_var.set("Selecione uma moeda primeiro")
-        return
-    
-    try:
-        response = requests.get(f"https://economia.awesomeapi.com.br/json/last/{par}")
-        if response.status_code == 200:
-            data = response.json()
-
-            chave = par.replace("-", "")
-            if chave in data:
-                cotacao = data[chave]
-                valor = float(cotacao['bid'])
-                resultado_var.set(f"1 {par.split('-')[0]} = R$ {valor:.2f}")
-            else:
-                resultado_var.set("Dados de cotação não encontrados")
-        else:
-            resultado_var.set(f"Erro na API: {response.status_code}")
-    except Exception as e:
-        resultado_var.set(f"Erro ao obter cotação: {str(e)}")
-
-Label(app, text="Moeda de Origem:").pack(pady=5)
-moeda_button = Menubutton(app, text="Selecione uma moeda")
-moeda_button.pack(pady=5)
-
-Label(app, text="Resultado:").pack(pady=5)
-resultado_entry = Label(
-    app, 
-    textvariable=resultado_var, 
-    font=("Arial", 16, "bold")
-)
-resultado_entry.pack(pady=10)
-
-Button(
-    app, 
-    text="Converter", 
-    command=converter_moeda
-).pack(pady=10)
-
-carregar_moedas()
+Button(app, text="Converter", command=buscar_cotacao, bootstyle=PRIMARY).pack(pady=10)
 
 app.mainloop()
