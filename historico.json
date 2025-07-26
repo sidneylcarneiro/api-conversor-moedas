@@ -4,3 +4,5 @@
 {"data": "2025-07-26T16:27:09.315003", "moeda_origem": "AUD", "moeda_destino": "EUR", "valor_origem": 10.0, "valor_convertido": 5.5915277172028945}
 {"data": "2025-07-26T16:28:38.207688", "moeda_origem": "BRL", "moeda_destino": "EUR", "valor_origem": 1500.0, "valor_convertido": 229.7998290289272}
 {"data": "2025-07-26T16:28:38.569794", "moeda_origem": "BRL", "moeda_destino": "EUR", "valor_origem": 1500.0, "valor_convertido": 229.7998290289272}
+{"data": "2025-07-26T19:00:06.614967", "moeda_origem": "USD", "moeda_destino": "EUR", "valor_origem": 150.0, "valor_convertido": 128.52479243246023}
+{"data": "2025-07-26T19:00:16.941144", "moeda_origem": "USD", "moeda_destino": "BRL", "valor_origem": 150.0, "valor_convertido": 834.9749869326414}
